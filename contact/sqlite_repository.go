@@ -124,3 +124,42 @@ func (r *SQLiteRepository) GetById(id int64) (*Contact, error) {
 
 	return &contact, nil
 }
+
+func (r *SQLiteRepository) Update(id int64, updated Contact) (*Contact, error) {
+	if id == 0 {
+		return nil, errors.New("Invalid ID provided")
+	}
+
+	res, err := r.db.Exec("UPDATE contacts SET name = ? WHERE id = ?", updated.Name, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if rowsAffected == 0 {
+		return nil, ErrUpdateFailed
+	}
+
+	return &updated, nil
+}
+
+func (r *SQLiteRepository) Delete(id int64) error {
+	res, err := r.db.Exec("DELETE FROM contacts WHERE id = ?", id)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if rowsAffected == 0 {
+		return ErrDeleteFailed
+	}
+
+	return err
+}
